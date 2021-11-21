@@ -6,18 +6,19 @@
 整数数据类型、浮点数数据类型、精确小数类型、二进制数据类型、日期/时间数据类型、字符串数据类型。
 
 ### MySQL中的存储引擎myisam和innodb
-（1）InnoDB存储引擎支持事务，而MyISAM不支持事务；
-（2）InnoDB支持行级锁，而MyISAM只支持表级锁；
-（3）InnoDB支持外键，而MyISAM不支持外键；
-（4）InnoDB不保存数据库表中表的具体行数，而MyISAM会保存；
+（1）InnoDB存储引擎支持事务，而MyISAM不支持事务；  
+（2）InnoDB支持行级锁，而MyISAM只支持表级锁；  
+（3）InnoDB支持外键，而MyISAM不支持外键；  
+（4）InnoDB不保存数据库表中表的具体行数，而MyISAM会保存；  
 
 ### MySQL中的事务，以及事务的特征
-事务是一种操作序列，一系列的操作要么都执行，要么都不执行，它们是一个整体。每个事务结束时，都保持着数据一致性。事务有四大特征：原子性、一致性、隔离性、持久性。
+事务是一种操作序列，一系列的操作要么都执行，要么都不执行，它们是一个整体。每个事务结束时，都保持着数据一致性。事务有四大特征：原子性、一致性、隔离性、持久性。  
 
 ### 数据库中的乐观锁和悲观锁
 乐观锁：假设不会发生并发冲突，只在提交的时候检查是否发生并发冲突。可以使用版本号机制和CAS算法实现。
 
-版本号机制：一般在数据表中加一个数据版本号version字段，表示数据被修改的次数，当数据被修改时version值加一。当线程A要更新数据值时，在读取数据的同时也会读取version值，在提交更新时，若当前读取到的version值与第一次读取到的数据库version值相等时才更新，否则重试更新操作，直到更新成功。
+版本号机制：一般在数据表中加一个数据版本号version字段，表示数据被修改的次数，当数据被修改时version值加一。  
+当线程A要更新数据值时，在读取数据的同时也会读取version值，在提交更新时，若当前读取到的version值与第一次读取到的数据库version值相等时才更新，否则重试更新操作，直到更新成功。  
 
 ### CAS机制：即compare and swap（比较与交换），无锁编程，在不使用锁的情况下实现多线程之间的变量同步，也就是在没有线程被阻塞的情况下实现变量的同步，因此也叫非阻塞同步。
 
@@ -41,7 +42,8 @@
 加锁会有粒度问题，从粒度上从大到小可以划分为 ：
 
 表锁：开销较小，一旦有用户访问这个表就会加锁，其他用户就不能对这个表操作了，应用程序的访问请求遇到锁等待的可能性比较高。
-页锁：是MySQL中比较独特的一种锁定级别，锁定颗粒度介于行级锁定与表级锁之间，所以获取锁定所需要的资源开销，以及所能提供的并发处理能力也同样是介于上面二者之间。另外，页级锁定和行级锁定一样，会发生死锁。
+页锁：是MySQL中比较独特的一种锁定级别，锁定颗粒度介于行级锁定与表级锁之间，所以获取锁定所需要的资源开销，以及所能提供的并发处理能力也同样是介于上面二者之间。  
+另外，页级锁定和行级锁定一样，会发生死锁。
 行锁：开销较大，能具体的锁定到表中的某一行数据，但是能更好的支持并发处理， 会发生死锁。
 
 ### MySQL数据库的基本的索引类型
@@ -50,7 +52,7 @@
 普通索引、唯一索引、主键索引、联合索引、全文索引。
 
 唯一索引：索引列的值必须唯一，但允许有空值。如果是组合索引，则列值的组合必须唯一。
-主键索引：是一种特殊的唯一索引，一个表只能有一个主键，不允许有空值。 为表定义主键将自动创建主键索引。（数据库表某列或列组合，其值唯一标识表中的每一行。该列称为表的主键。）
+主键索引：是一种特殊的唯一索引，一个表只能有一个主键，不允许有空值。 为表定义主键将自动创建主键索引。（数据库表某列或列组合，其值唯一标识表中的每一行。该列称为表的主键。）  
 联合索引：指对表上的多个列做索引。只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用组合索引时遵循最左前缀原则。
 全文索引：主要用来查找文本中的关键字，而不是直接与索引中的值相比较。目前只有char、varchar，text 列上可以创建全文索引。
 
@@ -137,25 +139,25 @@ zset带权重参数的集合 底层hash表，可以做排行榜等功能。
 Redis采用定期删除+惰性删除策略，定期删除是指，默认在每100ms随机抽查是否有过期的key,如果有则删除。惰性删除是指，当用户获取某个key时，redis会检查是否过期，过期了则删除。
 
 .内存淘汰策略有：（在redis.conf中有一行配置 maxmemory-policy）
-volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
-volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
-volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
-allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
-allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰。
+volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰  
+volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰  
+volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰  
+allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰  
+allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰。  
 
 redis实现分布式锁
-    Setnx lock-key value1
-    Setnx lock-key value2
-    Get lock-key
-
+    Setnx lock-key value1  
+    Setnx lock-key value2  
+    Get lock-key  
+ 
 ### redis在springboot中的使用：
 
 导入依赖
 
-<!--redis-->
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-data-redis</artifactId>
+<!--redis-->  
+       <dependency>  
+           <groupId>org.springframework.boot</groupId>  
+           <artifactId>spring-boot-starter-data-redis</artifactId>  
        </dependency>
 
 配置连接信息
@@ -199,10 +201,10 @@ public class RedisConfig {
    
     @Bean
     @SuppressWarnings("all")
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {  
+        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();  
         template.setConnectionFactory(factory);
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);  
         ObjectMapper om = new ObjectMapper();
         om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
@@ -232,51 +234,51 @@ opsForZSet()：操作有序集合。
 redisTemplate.opsForValue().set("name","linqz",3, TimeUnit.SECONDS);  
 获取旧值：getAngSet  追加字符串：.append。
 
-### list: 双向列表：leftPushAll 左侧插入，rightPushAll右侧插入
-redisTemplate.opsForList().rightPush("userInfo",1);
-redisTemplate.opsForList().index("userInfo",0)；
+### list: 双向列表：leftPushAll 左侧插入，rightPushAll右侧插入  
+redisTemplate.opsForList().rightPush("userInfo",1);  
+redisTemplate.opsForList().index("userInfo",0)；  
 
-redisTemplate.opsForList().rightPushAll("user1",user1);
-redisTemplate.opsForList().range("user1",0,-1)；
-查询列表长度
-redisTemplate.opsForList().size("user1")；
+redisTemplate.opsForList().rightPushAll("user1",user1);  
+redisTemplate.opsForList().range("user1",0,-1)；  
+查询列表长度  
+redisTemplate.opsForList().size("user1")；  
 删除列表中的元素
-    redisTemplate.opsForList().remove("user1",1,"linqz");
+    redisTemplate.opsForList().remove("user1",1,"linqz");  
 弹出元素
-redisTemplate.opsForList().rightPop("user1")；
+redisTemplate.opsForList().rightPop("user1")；  
 
 
 ### hash
-在单点登录的时候存储用户信息，以cookie作为key,设置缓存时间30min.
-redisTemplate.opsForHash().putAll("userHash",userMap);
+在单点登录的时候存储用户信息，以cookie作为key,设置缓存时间30min.  
+redisTemplate.opsForHash().putAll("userHash",userMap);  
 
 
-redisTemplate.opsForHash().put("userHash","userName","linqz");
+redisTemplate.opsForHash().put("userHash","userName","linqz");  
 获取特定key的value。
-redisTemplate.opsForHash().get("userHash","userName");
+redisTemplate.opsForHash().get("userHash","userName");  
 获取特定hash的所有value值
-redisTemplate.opsForHash().values("userHash");
+redisTemplate.opsForHash().values("userHash");  
 获取特定hash的所有key
-redisTemplate.opsForHash().keys("userHash");
+redisTemplate.opsForHash().keys("userHash");  
 删除特定hash下的特定key
-redisTemplate.opsForHash().delete("userHash","userName");
+redisTemplate.opsForHash().delete("userHash","userName");  
 
 
 ### set集合：不存放重复值，无序。可以做去重，计算共同爱好，独有爱好，共同好友等。
-redisTemplate.opsForSet().add("citySet",citys)
-redisTemplate.opsForSet().remove("citySet",citys)
+redisTemplate.opsForSet().add("citySet",citys)  
+redisTemplate.opsForSet().remove("citySet",citys)  
 交集：
-redisTemplate.opsForSet().intersect("citySet1","citySet2")；
-并集：
-redisTemplate.opsForSet().union("citySet1","citySet2")；
+redisTemplate.opsForSet().intersect("citySet1","citySet2")；  
+并集： 
+redisTemplate.opsForSet().union("citySet1","citySet2")；  
 差集：
-redisTemplate.opsForSet().difference("citySet1","citySet2")；
+redisTemplate.opsForSet().difference("citySet1","citySet2")；  
 
 ### sorted set 
-redisTemplate.opsForZSet().add("zset2", "linqz", 9.6);
-redisTemplate.opsForZSet().range("zset2", 0, -1);
-redisTemplate.opsForZSet().count("zset2", 0, 8);
-redisTemplate.opsForZSet().size("zset2");
+redisTemplate.opsForZSet().add("zset2", "linqz", 9.6);  
+redisTemplate.opsForZSet().range("zset2", 0, -1);  
+redisTemplate.opsForZSet().count("zset2", 0, 8);  
+redisTemplate.opsForZSet().size("zset2");  
 
 
 
@@ -288,32 +290,32 @@ redisTemplate.opsForZSet().size("zset2");
 支持字段索引，优势在于查询功能强大，能存储海量数据，只支持单文档事务。
 
 它面向集合存储，意思是数据是被分组存储在数据集合中的，每个集合在数据库中有唯一的标识名，集合的概念类似于关系型数据的表。
-在集合中存储的是文档，被存储为键-值对的形式，键是每个文档的唯一标识，为字符串类型，值可以是各种的文件类型，这种存储形式为bson，文档的概念类似于数据库表中的一行数据。
+在集合中存储的是文档，被存储为键-值对的形式，键是每个文档的唯一标识，为字符串类型，值可以是各种的文件类型，这种存储形式为bson，文档的概念类似于数据库表中的一行数据。  
 
 特点是：性能高，使用方便，存储数据方便。
 
-### 使用场景，做服务器的日志记录，查找方便，导出也方便。
-存储监控数据，增删字段不需要修改表结构，
-存储大量的商家信息。
+### 使用场景，做服务器的日志记录，查找方便，导出也方便。  
+存储监控数据，增删字段不需要修改表结构，  
+存储大量的商家信息。  
 
-### 与mysql的比较，
-mysql查询语句是传统的sql语句，拥有成熟的体系海量数据处理时效率显著变慢。
+### 与mysql的比较，  
+mysql查询语句是传统的sql语句，拥有成熟的体系海量数据处理时效率显著变慢。  
 
-mongodb：非关系型数据库，属于文档型数据库。（可以存放xml,json,bson类型的数据。存储方式：虚拟内存+持久化。
+mongodb：非关系型数据库，属于文档型数据库。（可以存放xml,json,bson类型的数据。存储方式：虚拟内存+持久化。  
 
-### 数据类型：null,布尔，数值，字符串，日期，数组，内嵌文档，对象id。
-每个文档必须有一个_id键，可以是任意类型，默认是Objectid,在一个集合里有唯一的_id。
-
+### 数据类型：null,布尔，数值，字符串，日期，数组，内嵌文档，对象id。  
+每个文档必须有一个_id键，可以是任意类型，默认是Objectid,在一个集合里有唯一的_id。  
+  
 ### 数据库操作：
-新增数据库：use db1(db1为数据库名) #有这个数据就使用这个，没有则创建（很方便简洁）。查询数据：show dbs。
+新增数据库：use db1(db1为数据库名) #有这个数据就使用这个，没有则创建（很方便简洁）。查询数据：show dbs。  
 删除数据库：db.dropDatabase()
 
 ### 集合（表）的增删改：
-新增：db.db1.info #db1.info是表名 或者直接插入文档，集合也会被创建。 db.table1.insert({'a',1})
+新增：db.db1.info #db1.info是表名 或者直接插入文档，集合也会被创建。 db.table1.insert({'a',1})  
 
 查询：show tables
 
-删除集合：db.table1.drop()
+删除集合：db.table1.drop()  
 
 
 ### 文档（表中一行记录）的增删改，
@@ -329,14 +331,14 @@ user1={
 }
 
 
-新增一条数据：db.table1.insert(user1)
-新增多条记录：db.table1.insertMany([user1,user2])
+新增一条数据：db.table1.insert(user1)  
+新增多条记录：db.table1.insertMany([user1,user2])  
 
-查询一条记录：db.table1.findOne()
-查询所有记录：db.table1.find()
-带条件查询：db.table1.find({"age":25})
-比较运算'!=' db.table1.find({"age":{"$en":25}})
-运算符'<' {"age":{"$lt":25}},'>'{"age":{"$gt":25}},'<='{"age":{"$lte":25}},'>='{"age":{"gte":25}}。
+查询一条记录：db.table1.findOne()  
+查询所有记录：db.table1.find()   
+带条件查询：db.table1.find({"age":25})  
+比较运算'!=' db.table1.find({"age":{"$en":25}})  
+运算符'<' {"age":{"$lt":25}},'>'{"age":{"$gt":25}},'<='{"age":{"$lte":25}},'>='{"age":{"gte":25}}。  
 
 逻辑and db.table1.find( {"age":{"$gte":24,"$lte":25},"name":"lin"})
 逻辑or   db.table1.find({"or":[{"age":{"$gte":24,"$lte":25}},{"name":"lin"}]})
@@ -345,7 +347,7 @@ user1={
 修改表中字段：db.table1.update({'age':25},{"name":"linqz"})
 	       db.table1.update({"_id":1},obj)
 
-
+ 
 ### Mongodb在springboot中的使用，
 
 #### 1.首先是在项目中导包，
@@ -357,31 +359,31 @@ user1={
 
 #### 2配置文件中配置mongodb
 
-spring.data.mongodb.host=120.67.195.135 //主机ip
-spring.data.mongodb.port=27017	//mongodb的端口号
-spring.data.mongodb.database=linDatabase 数据库名
+spring.data.mongodb.host=120.67.195.135 //主机ip  
+spring.data.mongodb.port=27017	//mongodb的端口号  
+spring.data.mongodb.database=linDatabase 数据库名  
 或者 
-spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase
+spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase  
 
 
 #### 3使用 
 
 @Autowired
-    private MongoTemplate mongoTemplate;
-新增：mongoTemplate.save(user);
+    private MongoTemplate mongoTemplate;  
+新增：mongoTemplate.save(user);  
 
 根据条件查询:
- Query query = new Query(Criteria.where("name").is(name));
- User user = mongoTemplate.findOne(query,User.class);
+ Query query = new Query(Criteria.where("name").is(name));  
+ User user = mongoTemplate.findOne(query,User.class);  
 	
-根据条件更新:
- Query query = new Query(Criteria.where("id").is(user.getId())); 
- Update update = new Update().set("name",user.getName()).set("password",user.getPassword());	
- UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);
+根据条件更新:  
+ Query query = new Query(Criteria.where("id").is(user.getId()));   
+ Update update = new Update().set("name",user.getName()).set("password",user.getPassword());	  
+ UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);  
 
 根据条件删除:
- Query query = new Query(Criteria.where("id").is(id));
- mongoTemplate.remove(query,User.class)；
+ Query query = new Query(Criteria.where("id").is(id));  
+ mongoTemplate.remove(query,User.class)；  
 
 
 
