@@ -160,23 +160,23 @@ Get lock-key
 
 配置连接信息
 
-# Redis数据库索引（默认为0）  
+#### Redis数据库索引（默认为0）  
 spring.redis.database=0  
-# Redis服务器地址  
+#### Redis服务器地址  
 spring.redis.host=192.168.0.24  
-# Redis服务器连接端口  
+#### Redis服务器连接端口  
 spring.redis.port=6379  
-# Redis服务器连接密码（默认为空）  
+#### Redis服务器连接密码（默认为空）  
 spring.redis.password=  
-# 连接池最大连接数（使用负值表示没有限制）  
+#### 连接池最大连接数（使用负值表示没有限制）  
 spring.redis.pool.max-active=200  
-# 连接池最大阻塞等待时间（使用负值表示没有限制）  
+#### 连接池最大阻塞等待时间（使用负值表示没有限制）  
 spring.redis.pool.max-wait=-1  
-# 连接池中的最大空闲连接  
+#### 连接池中的最大空闲连接  
 spring.redis.pool.max-idle=10 
-# 连接池中的最小空闲连接  
+#### 连接池中的最小空闲连接  
 spring.redis.pool.min-idle=0  
-# 连接超时时间（毫秒）  
+#### 连接超时时间（毫秒）  
 spring.redis.timeout=1000 
 
 ### 使用redisTempate
@@ -348,13 +348,15 @@ user1={
 
 ### Mongodb在springboot中的使用，
 
-1.首先是在项目中导包， 
+#### 1.首先是在项目中导包，
+
        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
-2配置文件中配置mongodb, 
+#### 2配置文件中配置mongodb
+
 spring.data.mongodb.host=120.67.195.135 //主机ip
 spring.data.mongodb.port=27017	//mongodb的端口号
 spring.data.mongodb.database=linDatabase 数据库名
@@ -362,7 +364,8 @@ spring.data.mongodb.database=linDatabase 数据库名
 spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase
 
 
-3使用 
+#### 3使用 
+
 @Autowired
     private MongoTemplate mongoTemplate;
 新增：mongoTemplate.save(user);
@@ -370,10 +373,12 @@ spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase
 根据条件查询
  Query query = new Query(Criteria.where("name").is(name));
         User user = mongoTemplate.findOne(query,User.class);
+	
 根据条件更新
  Query query = new Query(Criteria.where("id").is(user.getId()));
         Update update = new Update().set("name",user.getName()).set("password",user.getPassword());
 UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);
+
 根据条件删除
 Query query = new Query(Criteria.where("id").is(id));
         mongoTemplate.remove(query,User.class)；
