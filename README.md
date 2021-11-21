@@ -144,9 +144,9 @@ allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的�
 allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰。
 
 redis实现分布式锁
-Setnx lock-key value1
-Setnx lock-key value2
-Get lock-key
+    Setnx lock-key value1
+    Setnx lock-key value2
+    Get lock-key
 
 ### redis在springboot中的使用：
 
