@@ -108,6 +108,295 @@ B+比B树更适合实际应用中操作系统的文件索引和数据库索引
 聚集索引和非聚集索引的根本区别是表记录的排列顺序和与索引的排列顺序是否一致。
 
 
+## Redis个人理解和总结
+
+
+### redis 是Nosql数据库， key-value存储系统。 基于内存运行，性能高效。
+### 低延迟的读写速度。应用广泛：可以做缓存系统（缓存热点数据），计数器，排行榜等。 
+
+### 有五种自有数据类型：string,hash,list,set,zset.
+string 类型 二进制安全的字符串，可以存储字符串，图片，视频等，最大长度512M，做一些复杂的计数功能的缓存。
+hash类型，存放的是结构化对象，方便于操作其中的字段，可以用在单点登录上，将cookieId作为key,用户信息存放在value中。
+list：插入顺序排序的字符串元素集合，基于双链表。
+set:无顺序集合，元素唯一,底层hash表，使用交并差集，可以做共同爱好，个性化喜好等功能。
+zset带权重参数的集合 底层hash表，可以做排行榜等功能。
+
+### redis的持久化机制：
+持久化机制有两种，1.RDB(redis默认使用)，通过时间周期（通过配置文件中的save参数定义快照周期）把内存中的数据以快照的形式保存到磁盘中，产生dump.rdb的数据文件。
+2.AOF,redis会将每个收到的写命令都通过write函数追加到文件最后。同时开启两种机制，数据恢复redis会优先选择AOF恢复。
+
+### Redis的缓存击穿，缓存雪崩，缓存预热：
+
+缓存击穿：是指用户查询的数据在数据库中没有，并且大量查询该数据，导致缓存中不存在该数据，数据库中也没有，增加了很多无效的查询，增大了数据库的访问压力，特别是一些恶意攻击。
+解决该问题的方法是采用布隆过滤器，它的核心思想是利用多个hash函数完成对数据的判重，当数据通过所有hash函数判断数据存在于集合，则存在，没有则直接返回空数据。
+缓存雪崩：缓存雪崩是指某个时间，大量缓存失效了，大量的访问直接查询数据库，导致数据库压力很大，甚至超出数据库的承载压力。应对方案可以是：采用多redis的方式，多redis之间设置有间隔的数据过期时间。
+缓存预热:对于一部分热点数据，在服务开启时将热点数据加载进缓存中，例如秒杀活动，可以在活动开始前五分钟，将活动信息都加载进缓存中，可以是定时刷新缓存。
+
+### Redis的过期策略以及内存淘汰机制：
+
+Redis采用定期删除+惰性删除策略，定期删除是指，默认在每100ms随机抽查是否有过期的key,如果有则删除。惰性删除是指，当用户获取某个key时，redis会检查是否过期，过期了则删除。
+
+.内存淘汰策略有：（在redis.conf中有一行配置 maxmemory-policy）
+volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
+allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
+allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰。
+
+redis实现分布式锁
+Setnx lock-key value1
+Setnx lock-key value2
+Get lock-key
+
+### redis在springboot中的使用：
+
+导入依赖
+
+<!--redis-->
+       <dependency>
+           <groupId>org.springframework.boot</groupId>
+           <artifactId>spring-boot-starter-data-redis</artifactId>
+       </dependency>
+
+配置连接信息
+
+# Redis数据库索引（默认为0）  
+spring.redis.database=0  
+# Redis服务器地址  
+spring.redis.host=192.168.0.24  
+# Redis服务器连接端口  
+spring.redis.port=6379  
+# Redis服务器连接密码（默认为空）  
+spring.redis.password=  
+# 连接池最大连接数（使用负值表示没有限制）  
+spring.redis.pool.max-active=200  
+# 连接池最大阻塞等待时间（使用负值表示没有限制）  
+spring.redis.pool.max-wait=-1  
+# 连接池中的最大空闲连接  
+spring.redis.pool.max-idle=10 
+# 连接池中的最小空闲连接  
+spring.redis.pool.min-idle=0  
+# 连接超时时间（毫秒）  
+spring.redis.timeout=1000 
+
+### 使用redisTempate
+
+public class Test_1{
+    @Autowired
+    private RedisTemplate<String,String>redisTemplate;
+
+    @Test
+    public void set(){
+        redisTemplate.opsForValue().set("myKey","myValue");
+        System.out.println(redisTemplate.opsForValue().get("myKey"));
+    }
+}
+
+### 创建一个 RedisTemplate<String,Object>的类
+
+@Configuration
+public class RedisConfig {
+   
+    @Bean
+    @SuppressWarnings("all")
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+        template.setConnectionFactory(factory);
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+        // key采用String的序列化方式
+        template.setKeySerializer(stringRedisSerializer);
+        // hash的key也采用String的序列化方式
+        template.setHashKeySerializer(stringRedisSerializer);
+        // value序列化方式采用jackson
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        // hash的value序列化方式采用jackson
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        template.afterPropertiesSet();
+        return template;
+    }
+}
+
+### 操作redis的五种数据类型：
+opsForValue()：操作字符串。
+opsForList()：操作列表。
+opsForHash()：操作哈希。
+opsForSet()：操作集合。
+opsForZSet()：操作有序集合。
+
+### string:
+redisTemplate.opsForValue().set("name","linqz",3, TimeUnit.SECONDS);  
+获取旧值：getAngSet  追加字符串：.append。
+
+### list: 双向列表：leftPushAll 左侧插入，rightPushAll右侧插入
+redisTemplate.opsForList().rightPush("userInfo",1);
+redisTemplate.opsForList().index("userInfo",0)；
+
+redisTemplate.opsForList().rightPushAll("user1",user1);
+redisTemplate.opsForList().range("user1",0,-1)；
+查询列表长度
+redisTemplate.opsForList().size("user1")；
+删除列表中的元素
+    redisTemplate.opsForList().remove("user1",1,"linqz");
+弹出元素
+redisTemplate.opsForList().rightPop("user1")；
+
+
+### hash
+在单点登录的时候存储用户信息，以cookie作为key,设置缓存时间30min.
+redisTemplate.opsForHash().putAll("userHash",userMap);
+
+
+redisTemplate.opsForHash().put("userHash","userName","linqz");
+获取特定key的value。
+redisTemplate.opsForHash().get("userHash","userName");
+获取特定hash的所有value值
+redisTemplate.opsForHash().values("userHash");
+获取特定hash的所有key
+redisTemplate.opsForHash().keys("userHash");
+删除特定hash下的特定key
+redisTemplate.opsForHash().delete("userHash","userName");
+
+
+### set集合：不存放重复值，无序。可以做去重，计算共同爱好，独有爱好，共同好友等。
+redisTemplate.opsForSet().add("citySet",citys)
+redisTemplate.opsForSet().remove("citySet",citys)
+交集：
+redisTemplate.opsForSet().intersect("citySet1","citySet2")；
+并集：
+redisTemplate.opsForSet().union("citySet1","citySet2")；
+差集：
+redisTemplate.opsForSet().difference("citySet1","citySet2")；
+
+### sorted set 
+redisTemplate.opsForZSet().add("zset2", "linqz", 9.6);
+redisTemplate.opsForZSet().range("zset2", 0, -1);
+redisTemplate.opsForZSet().count("zset2", 0, 8);
+redisTemplate.opsForZSet().size("zset2");
+
+
+
+## Mongodb的个人理解和总结
+
+
+
+### Mongodb是一个基于分布式文件存储的数据库。
+支持字段索引，优势在于查询功能强大，能存储海量数据，只支持单文档事务。
+
+它面向集合存储，意思是数据是被分组存储在数据集合中的，每个集合在数据库中有唯一的标识名，集合的概念类似于关系型数据的表。
+在集合中存储的是文档，被存储为键-值对的形式，键是每个文档的唯一标识，为字符串类型，值可以是各种的文件类型，这种存储形式为bson，文档的概念类似于数据库表中的一行数据。
+
+特点是：性能高，使用方便，存储数据方便。
+
+### 使用场景，做服务器的日志记录，查找方便，导出也方便。
+存储监控数据，增删字段不需要修改表结构，
+存储大量的商家信息。
+
+### 与mysql的比较，
+mysql查询语句是传统的sql语句，拥有成熟的体系海量数据处理时效率显著变慢。
+
+mongodb：非关系型数据库，属于文档型数据库。（可以存放xml,json,bson类型的数据。存储方式：虚拟内存+持久化。
+
+### 数据类型：null,布尔，数值，字符串，日期，数组，内嵌文档，对象id。
+每个文档必须有一个_id键，可以是任意类型，默认是Objectid,在一个集合里有唯一的_id。
+
+### 数据库操作：
+新增数据库：use db1(db1为数据库名) #有这个数据就使用这个，没有则创建（很方便简洁）。查询数据：show dbs。
+删除数据库：db.dropDatabase()
+
+### 集合（表）的增删改：
+新增：db.db1.info #db1.info是表名 或者直接插入文档，集合也会被创建。 db.table1.insert({'a',1})
+
+查询：show tables
+
+删除集合：db.table1.drop()
+
+
+### 文档（表中一行记录）的增删改，
+
+user1={
+"name":"lin",
+"age":25,
+'hobbies':['music','read'],
+'addr':{
+'country':'China',
+'city':'GZ'
+}
+}
+
+
+新增一条数据：db.table1.insert(user1)
+新增多条记录：db.table1.insertMany([user1,user2])
+
+查询一条记录：db.table1.findOne()
+查询所有记录：db.table1.find()
+带条件查询：db.table1.find({"age":25})
+比较运算'!=' db.table1.find({"age":{"$en":25}})
+运算符'<' {"age":{"$lt":25}},'>'{"age":{"$gt":25}},'<='{"age":{"$lte":25}},'>='{"age":{"gte":25}}。
+
+逻辑and db.table1.find( {"age":{"$gte":24,"$lte":25},"name":"lin"})
+逻辑or   db.table1.find({"or":[{"age":{"$gte":24,"$lte":25}},{"name":"lin"}]})
+
+
+修改表中字段：db.table1.update({'age':25},{"name":"linqz"})
+	       db.table1.update({"_id":1},obj)
+
+
+### Mongodb在springboot中的使用，
+
+1.首先是在项目中导包， 
+       <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+
+2配置文件中配置mongodb, 
+spring.data.mongodb.host=120.67.195.135 //主机ip
+spring.data.mongodb.port=27017	//mongodb的端口号
+spring.data.mongodb.database=linDatabase 数据库名
+或者 
+spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase
+
+
+3使用 
+@Autowired
+    private MongoTemplate mongoTemplate;
+新增：mongoTemplate.save(user);
+
+根据条件查询
+ Query query = new Query(Criteria.where("name").is(name));
+        User user = mongoTemplate.findOne(query,User.class);
+根据条件更新
+ Query query = new Query(Criteria.where("id").is(user.getId()));
+        Update update = new Update().set("name",user.getName()).set("password",user.getPassword());
+UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);
+根据条件删除
+Query query = new Query(Criteria.where("id").is(id));
+        mongoTemplate.remove(query,User.class)；
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
      
 
