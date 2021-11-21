@@ -370,18 +370,18 @@ spring.data.mongodb.uri=mongodb://120.67.195.135 :27017/linDatabase
     private MongoTemplate mongoTemplate;
 新增：mongoTemplate.save(user);
 
-根据条件查询
+根据条件查询:
  Query query = new Query(Criteria.where("name").is(name));
-        User user = mongoTemplate.findOne(query,User.class);
+ User user = mongoTemplate.findOne(query,User.class);
 	
-根据条件更新
- Query query = new Query(Criteria.where("id").is(user.getId()));
-        Update update = new Update().set("name",user.getName()).set("password",user.getPassword());
-UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);
+根据条件更新:
+ Query query = new Query(Criteria.where("id").is(user.getId())); 
+ Update update = new Update().set("name",user.getName()).set("password",user.getPassword());	
+ UpdateResult result = mongoTemplate.updateFirst(query,update,User.class);
 
-根据条件删除
-Query query = new Query(Criteria.where("id").is(id));
-        mongoTemplate.remove(query,User.class)；
+根据条件删除:
+ Query query = new Query(Criteria.where("id").is(id));
+ mongoTemplate.remove(query,User.class)；
 
 
 
